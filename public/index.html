@@ -1,1 +1,303 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Automação MADM</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2333;
+      --border: #21262d;
+      --accent: #58a6ff;
+      --accent2: #7c3aed;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --text: #c9d1d9;
+      --text2: #8b949e;
+      --text3: #484f58;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* HEADER */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-logo {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #7c3aed, #58a6ff);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .header-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .online-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(63,185,80,.1); border: 1px solid rgba(63,185,80,.3);
+      color: var(--green); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    }
+    .online-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* MAIN */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+    /* CARD PRINCIPAL */
+    .card-main {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px 32px; margin-bottom: 24px;
+    }
+    .card-main h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .card-main p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+    .aviso {
+      background: rgba(210,153,34,.08); border: 1px solid rgba(210,153,34,.3);
+      border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #e3b341;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-iniciar {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-iniciar:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-iniciar:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-iniciar.running { border-color: var(--accent); color: var(--accent); }
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    /* GRID INFERIOR */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* TERMINAL */
+    .terminal-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .terminal-header {
+      background: var(--surface2); padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #febc2e; }
+    .dot.g { background: #28c840; }
+    .terminal-title { font-size: 12px; color: var(--text2); margin-left: 6px; font-weight: 500; }
+    .terminal-body {
+      background: #0d1117; padding: 16px; height: 320px; overflow-y: auto;
+      font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .terminal-body::-webkit-scrollbar { width: 4px; }
+    .terminal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .log-entry { display: flex; gap: 10px; }
+    .log-time { color: var(--text3); flex-shrink: 0; }
+    .log-msg.info { color: #79c0ff; }
+    .log-msg.ok { color: #56d364; }
+    .log-msg.aviso { color: #e3b341; }
+    .log-msg.erro { color: #ff7b72; }
+    .log-msg.clique { color: #d2a8ff; }
+    .log-msg.secao { color: #ffa657; font-weight: 700; }
+    .log-empty { color: var(--text3); font-style: italic; margin: auto; text-align: center; font-family: 'Inter', sans-serif; }
+
+    /* DOCUMENTOS */
+    .docs-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .docs-header {
+      background: var(--surface2); padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 600; color: var(--text);
+    }
+    .docs-body { padding: 16px; height: 320px; overflow-y: auto; }
+    .docs-body::-webkit-scrollbar { width: 4px; }
+    .docs-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .docs-empty { color: var(--text3); font-size: 13px; font-style: italic; text-align: center; margin-top: 40px; }
+    .doc-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px;
+      transition: border-color .2s;
+    }
+    .doc-item:hover { border-color: var(--accent); }
+    .doc-icon { font-size: 18px; flex-shrink: 0; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-sm {
+      padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+      cursor: pointer; border: none; transition: opacity .2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .btn-sm:hover { opacity: .8; }
+    .btn-prev { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.3); }
+    .btn-dl { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+    .doc-preview { display: none; margin-top: 8px; border-radius: 6px; overflow: hidden; }
+    .doc-preview.open { display: block; }
+    .doc-preview iframe { width: 100%; height: 360px; border: none; background: #fff; }
+    .doc-preview img { width: 100%; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-logo">🤖</div>
+    <span class="header-title">Automação MADM</span>
+  </div>
+  <div class="online-badge">
+    <div class="online-dot"></div>
+    Online
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- CARD PRINCIPAL -->
+  <div class="card-main">
+    <h2>Coleta de Documentos Gov.br</h2>
+    <p>Esta automação acessará o Meu INSS para baixar CNIS, Laudos, Cartas de Concessão, CAT e abrirá a Carteira de Trabalho Digital.</p>
+    <div class="aviso">
+      ⚠ Você precisará fazer o login manualmente na janela do navegador que se abrirá.
+    </div>
+    <button class="btn-iniciar" id="btn" onclick="iniciar()">
+      ▶ Iniciar Automação
+    </button>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid">
+
+    <!-- TERMINAL -->
+    <div class="terminal-card">
+      <div class="terminal-header">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <span class="terminal-title">Terminal de Logs</span>
+      </div>
+      <div class="terminal-body" id="log-box">
+        <div class="log-empty">Aguardando início...</div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTOS -->
+    <div class="docs-card">
+      <div class="docs-header">Documentos Coletados</div>
+      <div class="docs-body" id="docs-body">
+        <div class="docs-empty">Coleta em andamento...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let ws;
+
+  function conectarWS() {
+    ws = new WebSocket(`ws://${location.host}`);
+    ws.onopen = () => {
+      document.querySelector('.online-dot').style.background = '#3fb950';
+    };
+    ws.onclose = () => {
+      document.querySelector('.online-dot').style.background = '#f85149';
+      setTimeout(conectarWS, 2000);
+    };
+    ws.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      if (d.tipo === 'log') adicionarLog(d.tipo_log, d.mensagem, d.hora);
+      else if (d.tipo === 'etapa') atualizarBtn(d.mensagem);
+      else if (d.tipo === 'concluido') onConcluido(d);
+    };
+  }
+
+  function adicionarLog(tipo, msg, hora) {
+    const box = document.getElementById('log-box');
+    const vazio = box.querySelector('.log-empty');
+    if (vazio) vazio.remove();
+    const el = document.createElement('div');
+    el.className = 'log-entry';
+    el.innerHTML = `<span class="log-time">[${hora||''}]</span><span class="log-msg ${tipo||'info'}">${msg}</span>`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function atualizarBtn(msg) {
+    const btn = document.getElementById('btn');
+    const isRunning = !msg.includes('❌') && !msg.includes('🏁') && !msg.includes('Aguardando');
+    if (isRunning) {
+      btn.innerHTML = '<span class="spin">↻</span> ' + msg;
+      btn.classList.add('running');
+    } else {
+      btn.innerHTML = '▶ Iniciar Automação';
+      btn.classList.remove('running');
+      btn.disabled = false;
+    }
+    adicionarLog('info', msg);
+  }
+
+  function onConcluido(data) {
+    atualizarBtn(`🏁 Concluído — ${data.total} documento(s)`);
+    document.getElementById('btn').disabled = false;
+    if (data.arquivos && data.arquivos.length > 0) renderDocs(data.arquivos);
+  }
+
+  async function iniciar() {
+    const btn = document.getElementById('btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin">↻</span> Inicializando...';
+    btn.classList.add('running');
+    document.getElementById('log-box').innerHTML = '';
+    document.getElementById('docs-body').innerHTML = '<div class="docs-empty">Coleta em andamento...</div>';
+    try {
+      const res = await fetch('/iniciar', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
+      if (!res.ok) { atualizarBtn('❌ Erro ao iniciar.'); btn.disabled = false; }
+    } catch {
+      atualizarBtn('❌ Erro ao conectar.');
+      btn.disabled = false;
+    }
+  }
+
+  function renderDocs(arquivos) {
+    const body = document.getElementById('docs-body');
+    body.innerHTML = '';
+    arquivos.forEach((arq, i) => {
+      const isPdf = arq.nome.toLowerCase().endsWith('.pdf');
+      const isImg = /\.(png|jpg|jpeg)$/i.test(arq.nome);
+      const icone = isPdf ? '📄' : isImg ? '🖼️' : '📎';
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+        <div class="doc-item" onclick="togglePreview(${i})">
+          <span class="doc-icon">${icone}</span>
+          <div class="doc-info"><div class="doc-name" title="${arq.nome}">${arq.nome}</div></div>
+          <div class="doc-btns">
+            ${isPdf||isImg ? `<button class="btn-sm btn-prev" onclick="event.stopPropagation();togglePreview(${i})">👁</button>` : ''}
+            <a href="${arq.url}" download="${arq.nome}" onclick="event.stopPropagation()">
+              <button class="btn-sm btn-dl">⬇</button>
+            </a>
+          </div>
+        </div>
+        <div class="doc-preview" id="preview-${i}">
+          ${isPdf ? `<iframe src="${arq.url}"></iframe>` : isImg ? `<img src="${arq.url}"/>` : ''}
+        </div>`;
+      body.appendChild(wrap);
+    });
+  }
+
+  function togglePreview(i) {
+    document.getElementById(`preview-${i}`).classList.toggle('open');
+  }
+
+  conectarWS();
+</script>
+</body>
+</html>
